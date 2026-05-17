@@ -52,7 +52,7 @@ export default function AdminMenu() {
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-serif">Menu Management</h1>
         <button onClick={() => setShowModal(true)} className="rounded-xl bg-yakoyo-accent px-4 py-2 font-semibold text-black">
-          Add New Dish
+          Add New Bakery Item
         </button>
       </div>
 
@@ -132,7 +132,7 @@ function MenuModal({ item, onClose, onSave }) {
   const uploadImage = async (file) => {
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
-    const filePath = `dishes/${fileName}`;
+    const filePath = `bakery-items/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
       .from('menu-images')
@@ -184,11 +184,11 @@ function MenuModal({ item, onClose, onSave }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="glass-card rounded-xl p-6 w-full max-w-md">
-        <h2 className="text-xl font-serif mb-4">{item ? 'Edit Dish' : 'Add New Dish'}</h2>
+        <h2 className="text-xl font-serif mb-4">{item ? 'Edit Bakery Item' : 'Add New Bakery Item'}</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
-            placeholder="Dish Name"
+            placeholder="Item Name"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             className="w-full rounded-lg border border-white/20 bg-yakoyo-surface px-3 py-2 text-white"

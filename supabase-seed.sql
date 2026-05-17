@@ -1,21 +1,21 @@
 insert into menu_items (name, description, price, category, image_url) values
 
--- STARTERS
-('Peppered Snail (Ẹscargot Naija)', 'Tender giant African land snails slow-cooked in a rich Scotch bonnet and tatashe pepper sauce, served with toasted agege bread crostini', 8500, 'starters', 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445'),
-('Suya Beef Skewers', 'Premium tenderloin marinated in house-blend yaji spice, char-grilled over open flame, served with sliced onions, tomatoes and groundnut dust', 7500, 'starters', 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1'),
+-- FEATURED
+('Champagne Celebration Cake', 'A three-tier champagne vanilla cake finished with white chocolate glaze, gold leaf, and fresh berries for luxury events and weddings.', 23500, 'mains', 'https://images.unsplash.com/photo-1542825894-6a7c574a0886'),
+('Salted Caramel Macaron Box', 'A curated assortment of 12 delicate macarons with salted caramel, pistachio, raspberry, and espresso flavors.', 9800, 'desserts', 'https://images.unsplash.com/photo-1527515637464-2cf7c8f1b118'),
 
--- MAINS
-('Ofe Onugbu (Bitter Leaf Soup)', 'A bold and earthy Igbo classic — thick bitter leaf soup cooked with assorted meat, dry fish, crayfish, cocoyam thickener and premium palm oil, served with pounded yam', 12500, 'mains', 'https://images.unsplash.com/photo-1604329760661-e71dc83f8f26'),
-('Banga Soup & Starch', 'Slow-extracted palm nut soup from the Niger Delta, perfused with oburunbebe stick, dried catfish, periwinkle and beef, served with white starch', 13500, 'mains', 'https://images.unsplash.com/photo-1547592180-85f173990554'),
-('Egusi Soup (Chef Special)', 'Stone-ground melon seed soup fried in premium palm oil with spinach, assorted meat, stockfish and smoked prawns — served with eba or pounded yam', 11500, 'mains', 'https://images.unsplash.com/photo-1604329760661-e71dc83f8f26'),
-('Ofada Rice & Ayamase', 'Locally grown unpolished Ofada rice served with the famous green pepper Ayamase stew, assorted offals and fried ponmo', 10500, 'mains', 'https://images.unsplash.com/photo-1516100882582-96c3a05fe590'),
+-- PASTRIES
+('Almond Croissant Duo', 'Freshly baked butter-rich croissants filled with almond frangipane and finished with powdered sugar.', 4200, 'starters', 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e'),
+('Raspberry Cream Danish', 'Flaky pastry layered with raspberry preserves and vanilla pastry cream, topped with toasted almonds.', 3900, 'starters', 'https://images.unsplash.com/photo-1551024709-8f23befc6e6f'),
+
+-- BREADS
+('Artisan Sourdough Loaf', 'Handcrafted sourdough with a crisp crust, open crumb, and notes of wheat and toasted hazelnut.', 7500, 'mains', 'https://images.unsplash.com/photo-1548365328-95b48e1215b3'),
+('Brioche Pull-Apart', 'Soft, buttery brioche rolls layered with honey glaze and a hint of vanilla.', 6800, 'mains', 'https://images.unsplash.com/photo-1511688878358-22d2f40669a9'),
 
 -- DESSERTS
-('Puff Puff Royale', 'Yakoyo signature deep-fried dough balls dusted in spiced cinnamon sugar, served warm with a side of Nigerian honey and coconut dipping cream', 4500, 'desserts', 'https://images.unsplash.com/photo-1551024601-bec78aea704b'),
-('Chin Chin Parfait', 'Crunchy house-made chin chin layered with whipped cream, mango coulis and a drizzle of dark chocolate — a Nigerian childhood reimagined', 5000, 'desserts', 'https://images.unsplash.com/photo-1488477181946-6428a0291777'),
+('Chocolate Hazelnut Éclair', 'Choux pastry filled with chocolate custard and finished with a glossy hazelnut ganache.', 5200, 'desserts', 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd'),
+('Lemon Tartlette', 'Zesty lemon curd in a buttery crust finished with Italian meringue and candied lemon zest.', 4800, 'desserts', 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e'),
 
 -- DRINKS
-('Zobo Royale', 'House-crafted hibiscus zobo drink infused with cloves, ginger, pineapple and a hint of mint — chilled and lightly sparkling', 3500, 'drinks', 'https://images.unsplash.com/photo-1497534446932-c925b458314e'),
-('Kunu & Tonic', 'Traditional millet-based kunu aya (tiger nut) blended smooth, lightly sweetened and served over ice with a twist of orange peel', 3000, 'drinks', 'https://images.unsplash.com/photo-1544145945-f90425340c7e'),
-('Fresh Palmwine Spritz', 'Freshly tapped palmwine from Yoruba orchards, lightly fermented, served chilled with a garnish of fresh pineapple', 4000, 'drinks', 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd'),
-('Chapman Classic', 'Nigeria''s beloved party drink — Fanta, Sprite, Ribena, Angostura bitters, cucumber and ice, garnished the Yakoyo way', 3200, 'drinks', 'https://images.unsplash.com/photo-1524594157368-433cb8e0a95f');
+('Vanilla Latte', 'Smooth espresso blended with steamed milk and Madagascar vanilla syrup, finished with a light foam dusting.', 3200, 'drinks', 'https://images.unsplash.com/photo-1509042239860-f550ce710b93'),
+('Sparkling Rosé Lemonade', 'Refreshing sparkling lemonade infused with rosé, citrus, and fresh mint.', 3400, 'drinks', 'https://images.unsplash.com/photo-1484980972926-edee96e0960d');

@@ -1,15 +1,15 @@
-# Yakoyo Restaurant Website
+# Craving Station Bakery Website
 
-A modern, full-stack restaurant website built with React, Supabase, and Paystack payment integration.
+A modern, full-stack bakery and catering website built with React, Supabase, and Paystack payment integration.
 
 ## Features
 
 - **Authentication System**: User registration, login, and role-based access (customer/admin)
 - **Customer Dashboard**: Profile management, order history, reservations
-- **Admin Dashboard**: Complete restaurant management (orders, reservations, menu, customers, settings)
+- **Admin Dashboard**: Complete bakery and catering management (orders, bookings, menu, customers, settings)
 - **Menu Management**: Dynamic menu with categories and availability
 - **Online Ordering**: Cart system with Paystack payment integration
-- **Reservations**: Table booking system
+- **Catering Bookings**: Event and celebration booking flow
 - **Responsive Design**: Mobile-first design with dark luxury theme
 
 ## Tech Stack

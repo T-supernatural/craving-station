@@ -148,7 +148,7 @@ export default function AdminSettings() {
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-serif flex items-center gap-3">
           <SettingsIcon size={32} />
-          Restaurant Settings
+          Bakery Settings
         </h1>
         <button
           onClick={handleSave}
@@ -166,7 +166,7 @@ export default function AdminSettings() {
           <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Restaurant Name</label>
+              <label className="block text-sm font-medium mb-2">Bakery Name</label>
               <input
                 type="text"
                 value={settings.restaurant_name}
@@ -175,7 +175,7 @@ export default function AdminSettings() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Description</label>
+              <label className="block text-sm font-medium mb-2">Bakery Description</label>
               <textarea
                 value={settings.restaurant_description || ''}
                 onChange={(e) => updateSetting('restaurant_description', e.target.value)}
@@ -232,7 +232,7 @@ export default function AdminSettings() {
               </label>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Accept Reservations</span>
+              <span className="text-sm font-medium">Accept Catering Bookings</span>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"

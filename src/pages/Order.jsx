@@ -236,7 +236,7 @@ export default function Order() {
         return;
       }
 
-      const paymentRef = 'yakoyo_' + new Date().getTime();
+      const paymentRef = 'cravingstation_' + new Date().getTime();
 
       // STEP 1: Save order BEFORE opening Paystack with status 'pending_payment'
       const { data: savedOrder, error: saveError } = await supabase
