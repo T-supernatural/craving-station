@@ -1,0 +1,152 @@
+[
+  {
+    "model": "products.product",
+    "pk": 1,
+    "fields": {
+      "name": "Signature Celebration Cake",
+      "description": "A tall layered vanilla cake with buttercream frosting, gold leaf accents, and seasonal berries.",
+      "price": "25000.00",
+      "category": "mains",
+      "image_url": "https://images.unsplash.com/photo-1495195134817-aeb325a55b65",
+      "available": true,
+      "featured": true,
+      "created_at": "2026-01-01T10:00:00Z",
+      "updated_at": "2026-01-01T10:00:00Z"
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 2,
+    "fields": {
+      "name": "Almond Croissant Duo",
+      "description": "Flaky butter croissants filled with almond frangipane and finished with toasted almonds.",
+      "price": "4200.00",
+      "category": "starters",
+      "image_url": "https://images.unsplash.com/photo-1499636136210-6f4ee915583e",
+      "available": true,
+      "featured": false,
+      "created_at": "2026-01-02T10:00:00Z",
+      "updated_at": "2026-01-02T10:00:00Z"
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 3,
+    "fields": {
+      "name": "Raspberry Cream Danish",
+      "description": "Flaky pastry layered with raspberry jam and pastry cream, topped with toasted almonds.",
+      "price": "3900.00",
+      "category": "starters",
+      "image_url": "https://images.unsplash.com/photo-1551024709-8f23befc6e6f",
+      "available": true,
+      "featured": false,
+      "created_at": "2026-01-03T10:00:00Z",
+      "updated_at": "2026-01-03T10:00:00Z"
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 4,
+    "fields": {
+      "name": "Artisan Sourdough Loaf",
+      "description": "Handmade sourdough with a crisp crust, open crumb, and notes of wheat and hazelnut.",
+      "price": "7500.00",
+      "category": "mains",
+      "image_url": "https://images.unsplash.com/photo-1548365328-95b48e1215b3",
+      "available": true,
+      "featured": false,
+      "created_at": "2026-01-04T10:00:00Z",
+      "updated_at": "2026-01-04T10:00:00Z"
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 5,
+    "fields": {
+      "name": "Chocolate Hazelnut Éclair",
+      "description": "Choux pastry filled with rich chocolate custard and topped with hazelnut ganache.",
+      "price": "5200.00",
+      "category": "desserts",
+      "image_url": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd",
+      "available": true,
+      "featured": true,
+      "created_at": "2026-01-05T10:00:00Z",
+      "updated_at": "2026-01-05T10:00:00Z"
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 6,
+    "fields": {
+      "name": "Lemon Tartlette",
+      "description": "Zesty lemon curd in a buttery tart shell finished with Italian meringue.",
+      "price": "4800.00",
+      "category": "desserts",
+      "image_url": "https://images.unsplash.com/photo-1499636136210-6f4ee915583e",
+      "available": true,
+      "featured": false,
+      "created_at": "2026-01-06T10:00:00Z",
+      "updated_at": "2026-01-06T10:00:00Z"
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 7,
+    "fields": {
+      "name": "Vanilla Latte",
+      "description": "Smooth espresso blended with steamed milk and Madagascar vanilla syrup.",
+      "price": "3200.00",
+      "category": "drinks",
+      "image_url": "https://images.unsplash.com/photo-1509042239860-f550ce710b93",
+      "available": true,
+      "featured": false,
+      "created_at": "2026-01-07T10:00:00Z",
+      "updated_at": "2026-01-07T10:00:00Z"
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 8,
+    "fields": {
+      "name": "Sparkling Rosé Lemonade",
+      "description": "Refreshing sparkling lemonade infused with rosé, citrus, and fresh mint.",
+      "price": "3400.00",
+      "category": "drinks",
+      "image_url": "https://images.unsplash.com/photo-1484980972926-edee96e0960d",
+      "available": true,
+      "featured": false,
+      "created_at": "2026-01-08T10:00:00Z",
+      "updated_at": "2026-01-08T10:00:00Z"
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 9,
+    "fields": {
+      "name": "Brioche Pull-Apart",
+      "description": "Soft, buttery brioche rolls baked in a shareable pull-apart shape with honey glaze.",
+      "price": "6800.00",
+      "category": "mains",
+      "image_url": "https://images.unsplash.com/photo-1511688878358-22d2f40669a9",
+      "available": true,
+      "featured": false,
+      "created_at": "2026-01-09T10:00:00Z",
+      "updated_at": "2026-01-09T10:00:00Z"
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 10,
+    "fields": {
+      "name": "Mini Cheesecake Bites",
+      "description": "Creamy mini cheesecake bites topped with raspberry compote and pistachio.",
+      "price": "2800.00",
+      "category": "starters",
+      "image_url": "https://images.unsplash.com/photo-1551024601-bec78aea704b",
+      "available": true,
+      "featured": false,
+      "created_at": "2026-01-10T10:00:00Z",
+      "updated_at": "2026-01-10T10:00:00Z"
+    }
+  }
+]

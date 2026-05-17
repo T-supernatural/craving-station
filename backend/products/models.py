@@ -2,11 +2,13 @@ from django.db import models
 
 class Product(models.Model):
     CATEGORY_CHOICES = [
+        ('starters', 'Starters'),
+        ('mains', 'Mains'),
+        ('desserts', 'Desserts'),
+        ('drinks', 'Drinks'),
         ('cakes', 'Cakes'),
-        ('donuts', 'Donuts'),
         ('pastries', 'Pastries'),
         ('bread', 'Bread'),
-        ('desserts', 'Desserts'),
         ('catering', 'Catering Packages'),
     ]
 
