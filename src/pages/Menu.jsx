@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { supabase } from '../lib/supabaseClient';
+import { fetchProducts } from '../lib/productsApi';
 import MenuCard from '../components/MenuCard';
 
 const categories = ['all', 'starters', 'mains', 'desserts', 'drinks'];
@@ -15,12 +15,13 @@ export default function Menu() {
   useEffect(() => {
     const loadMenu = async () => {
       setLoading(true);
-      const { data, error } = await supabase.from('menu_items').select('*').order('created_at', { ascending: true });
-      setLoading(false);
-      if (error) {
+      try {
+        const { items } = await fetchProducts();
+        setMenuItems(items);
+      } catch (error) {
         toast.error('Unable to fetch menu items.');
-      } else {
-        setMenuItems(data);
+      } finally {
+        setLoading(false);
       }
     };
     loadMenu();
