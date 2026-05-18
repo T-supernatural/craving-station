@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import authApi from '../lib/authApi';
-import { supabase } from '../lib/supabaseClient';
 
 const AuthContext = createContext();
 
@@ -14,42 +13,24 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Initialize auth: check for stored JWT token first, then Supabase session
+    // Initialize auth from stored JWT tokens only (Django-only)
     const initializeAuth = async () => {
       try {
         const storedUser = authApi.tokenManager.getStoredUser();
         if (storedUser && authApi.tokenManager.hasValidToken()) {
-          try {
-            const profile = await authApi.getProfile();
-            setUser(profile.user);
-            setSession({ user: profile.user });
-            console.log('AuthContext: Initialized from stored JWT token');
-          } catch (profileError) {
-            console.warn('AuthContext: Stored JWT token valid but profile fetch failed, falling back to Supabase', profileError);
-            const { data: { session: supabaseSession }, error: supabaseError } = await supabase.auth.getSession();
-            setSession(supabaseSession);
-            setUser(supabaseSession?.user ?? null);
-          }
+          const profile = await authApi.getProfile();
+          setUser(profile.user);
+          setSession({ user: profile.user });
+          console.log('AuthContext: Initialized from stored JWT token');
         } else if (storedUser && !authApi.tokenManager.isTokenExpired(authApi.tokenManager.getRefreshToken())) {
-          try {
-            await authApi.refreshToken();
-            const profile = await authApi.getProfile();
-            setUser(profile.user);
-            setSession({ user: profile.user });
-            console.log('AuthContext: Refreshed access token and restored session');
-          } catch (error) {
-            console.error('AuthContext: Failed to refresh token, falling back to Supabase', error);
-            const { data: { session: supabaseSession }, error: supabaseError } = await supabase.auth.getSession();
-            setSession(supabaseSession);
-            setUser(supabaseSession?.user ?? null);
-          }
+          await authApi.refreshToken();
+          const profile = await authApi.getProfile();
+          setUser(profile.user);
+          setSession({ user: profile.user });
+          console.log('AuthContext: Refreshed access token and restored session');
         } else {
-          const { data: { session: supabaseSession }, error: supabaseError } = await supabase.auth.getSession();
-          if (supabaseError) {
-            console.error('AuthContext: Error getting Supabase session:', supabaseError);
-          }
-          setSession(supabaseSession);
-          setUser(supabaseSession?.user ?? null);
+          setUser(null);
+          setSession(null);
         }
       } catch (error) {
         console.error('AuthContext: Initialization error:', error);
@@ -60,21 +41,8 @@ export function AuthProvider({ children }) {
 
     initializeAuth();
 
-    // Listen for Supabase auth changes as fallback
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_OUT') {
-          authApi.tokenManager.clearTokens();
-          setUser(null);
-          setSession(null);
-        } else {
-          setSession(session);
-          setUser(session?.user ?? null);
-        }
-      }
-    );
-
-    return () => subscription.unsubscribe();
+    // No Supabase listeners; Django-only auth flow
+    return undefined;
   }, []);
 
   const signIn = async (email, password) => {
