@@ -30,7 +30,7 @@ export default function Login() {
       toast.success('Logged in successfully!');
       navigate(from, { replace: true });
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error?.message || 'Login failed. Please try again.');
     }
   };
 

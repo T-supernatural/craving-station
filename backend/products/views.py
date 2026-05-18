@@ -1,4 +1,5 @@
 from django.db.models import Q
+from django.core.files.storage import default_storage
 from rest_framework.generics import (
     ListAPIView,
     RetrieveAPIView,
@@ -6,12 +7,17 @@ from rest_framework.generics import (
     UpdateAPIView,
     DestroyAPIView,
 )
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Product
 from .serializers import ProductSerializer
+import os
+import time
+import uuid
 
 
 class ProductPagination(PageNumberPagination):
@@ -96,4 +102,26 @@ class ProductDestroyAPIView(DestroyAPIView):
             {"detail": "Product deleted successfully"},
             status=status.HTTP_204_NO_CONTENT,
         )
+
+
+class ProductImageUploadAPIView(APIView):
+    parser_classes = [MultiPartParser, FormParser]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        image = request.FILES.get('file')
+        if not image:
+            return Response({'detail': 'No image file provided.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            extension = os.path.splitext(image.name)[1] or '.jpg'
+            file_name = f'products/{int(time.time())}-{uuid.uuid4().hex}{extension}'
+            saved_path = default_storage.save(file_name, image)
+            image_url = default_storage.url(saved_path)
+            return Response({'image_url': image_url}, status=status.HTTP_201_CREATED)
+        except Exception as exc:
+            return Response(
+                {'detail': 'Image upload failed: ' + str(exc)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 

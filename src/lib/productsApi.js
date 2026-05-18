@@ -136,6 +136,54 @@ const fetchProductById = async (id, options = {}) => {
   return data;
 };
 
+const uploadProductImage = async (file, options = {}) => {
+  const useBackend = options.useBackend ?? USE_DJANGO_PRODUCTS;
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+
+  if (useBackend) {
+    try {
+      const formData = new FormData();
+      formData.append('file', file, fileName);
+      const headers = await authApi.getAuthHeader();
+
+      if (!headers.Authorization) {
+        throw new Error('No valid JWT token available for image upload');
+      }
+
+      const response = await fetch(`${API_BASE_URL}/products/upload-image/`, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Django image upload failed: ${response.status} ${errorText}`);
+      }
+
+      const payload = await response.json();
+      return payload.image_url;
+    } catch (error) {
+      console.error('Django image upload failed, falling back to Supabase.', {
+        error,
+        fileName,
+        apiUrl: API_BASE_URL,
+        hasAuthToken: !!authApi.tokenManager.getAccessToken(),
+      });
+    }
+  }
+
+  const filePath = `bakery-items/${fileName}`;
+  const { error } = await supabase.storage.from('menu-images').upload(filePath, file);
+  if (error) {
+    throw error;
+  }
+
+  const { data } = supabase.storage.from('menu-images').getPublicUrl(filePath);
+  return data.publicUrl;
+};
+
 const createProduct = async (productData, options = {}) => {
   const useBackend = options.useBackend ?? USE_DJANGO_PRODUCTS;
 
@@ -264,4 +312,5 @@ export {
   createProduct,
   updateProduct,
   deleteProduct,
+  uploadProductImage,
 };

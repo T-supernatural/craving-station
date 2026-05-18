@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabaseClient';
-import { createProduct, deleteProduct, fetchProducts, updateProduct } from '../../lib/productsApi';
+import { createProduct, deleteProduct, fetchProducts, updateProduct, uploadProductImage } from '../../lib/productsApi';
 import { formatNaira } from '../../utils/formatNaira';
 import toast from 'react-hot-toast';
 
@@ -137,24 +136,16 @@ function MenuModal({ item, onClose, onSave }) {
   };
 
   const uploadImage = async (file) => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
-    const filePath = `bakery-items/${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('menu-images')
-      .upload(filePath, file);
-
-    if (uploadError) {
-      toast.error(`Image upload failed: ${uploadError.message}`);
-      return;
+    try {
+      return await uploadProductImage(file);
+    } catch (error) {
+      console.error('AdminMenu: Image upload failed', {
+        error,
+        useBackend: import.meta.env.VITE_USE_DJANGO_PRODUCTS,
+      });
+      toast.error(`Image upload failed: ${error?.message || 'Unable to upload image'}`);
+      throw error;
     }
-
-    const { data } = supabase.storage
-      .from('menu-images')
-      .getPublicUrl(filePath);
-
-    return data.publicUrl;
   };
 
   const handleSubmit = async (e) => {

@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model, password_validation, authenticate
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 User = get_user_model()
@@ -30,12 +31,23 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(
+        validators=[
+            UniqueValidator(
+                queryset=User.objects.all(),
+                message='A user with that email already exists.',
+            ),
+        ],
+    )
     password = serializers.CharField(write_only=True)
     full_name = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     class Meta:
         model = User
         fields = ('email', 'password', 'phone', 'full_name')
+        extra_kwargs = {
+            'password': {'write_only': True},
+        }
 
     def validate_password(self, value):
         password_validation.validate_password(value, self.instance)

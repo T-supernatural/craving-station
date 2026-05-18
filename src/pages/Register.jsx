@@ -40,7 +40,7 @@ export default function Register() {
       toast.success('Account created! Please check your email to verify.');
       navigate('/login');
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error?.message || 'Registration failed. Please check your details.');
     }
   };
 

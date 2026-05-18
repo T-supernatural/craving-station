@@ -130,6 +130,7 @@ const register = async (email, password, phoneOrFormData, fullName = null) => {
       }
 
       const user = await response.json();
+      console.log('authApi: Django register success');
       return { user, backend: 'django' };
     } catch (error) {
       console.error('Django register failed, falling back to Supabase.', {
@@ -192,6 +193,7 @@ const login = async (email, password) => {
 
       // Store tokens and user data
       tokenManager.setTokens(access, refresh, user);
+      console.log('authApi: Django login success');
 
       return { user, access, refresh, backend: 'django' };
     } catch (error) {
@@ -239,6 +241,7 @@ async function refreshToken() {
 
       const { access } = await response.json();
       localStorage.setItem(tokenManager.accessTokenKey, access);
+      console.log('authApi: Django token refresh success');
 
       return { access, backend: 'django' };
     } catch (error) {
