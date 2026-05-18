@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import { createProduct, deleteProduct, fetchProducts, updateProduct } from '../../lib/productsApi';
 import { formatNaira } from '../../utils/formatNaira';
 import toast from 'react-hot-toast';
 
@@ -15,33 +16,39 @@ export default function AdminMenu() {
 
   const fetchMenu = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from('menu_items').select('*').order('created_at', { ascending: true });
-    if (error) {
+    try {
+      const { items } = await fetchProducts();
+      setMenuItems(items || []);
+    } catch (error) {
+      console.error('Admin menu product fetch failed:', {
+        error,
+        useBackend: import.meta.env.VITE_USE_DJANGO_PRODUCTS,
+      });
       toast.error('Failed to load menu');
-    } else {
-      setMenuItems(data || []);
     }
     setLoading(false);
   };
 
   const toggleAvailable = async (id, available) => {
-    const { error } = await supabase.from('menu_items').update({ available }).eq('id', id);
-    if (error) {
-      toast.error('Failed to update');
-    } else {
+    try {
+      await updateProduct(id, { available });
       toast.success('Updated');
       fetchMenu();
+    } catch (error) {
+      console.error('Admin menu toggle available failed:', error);
+      toast.error('Failed to update');
     }
   };
 
   const deleteItem = async (id) => {
     if (!confirm('Delete this item?')) return;
-    const { error } = await supabase.from('menu_items').delete().eq('id', id);
-    if (error) {
-      toast.error('Failed to delete');
-    } else {
+    try {
+      await deleteProduct(id);
       toast.success('Deleted');
       fetchMenu();
+    } catch (error) {
+      console.error('Admin menu delete failed:', error);
+      toast.error('Failed to delete');
     }
   };
 
@@ -164,17 +171,20 @@ function MenuModal({ item, onClose, onSave }) {
       const data = { ...form, price: Number(form.price), image_url: imageUrl };
 
       if (item) {
-        const { error } = await supabase.from('menu_items').update(data).eq('id', item.id);
-        if (error) throw error;
+        await updateProduct(item.id, data);
         toast.success('Updated');
       } else {
-        const { error } = await supabase.from('menu_items').insert(data);
-        if (error) throw error;
+        await createProduct(data);
         toast.success('Added');
       }
 
       onSave();
     } catch (error) {
+      console.error('Admin menu product save failed:', {
+        error,
+        action: item ? 'update' : 'create',
+        useBackend: import.meta.env.VITE_USE_DJANGO_PRODUCTS,
+      });
       toast.error('Failed to save: ' + error.message);
     } finally {
       setUploading(false);

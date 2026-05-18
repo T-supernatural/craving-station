@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import authApi from '../lib/authApi';
 import { supabase } from '../lib/supabaseClient';
 
 const AuthContext = createContext();
@@ -13,22 +14,59 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        console.error('Error getting session:', error);
+    // Initialize auth: check for stored JWT token first, then Supabase session
+    const initializeAuth = async () => {
+      try {
+        const storedUser = authApi.tokenManager.getStoredUser();
+        if (storedUser && authApi.tokenManager.hasValidToken()) {
+          // JWT token is valid, use stored user
+          setUser(storedUser);
+          setSession({ user: storedUser });
+          console.log('AuthContext: Initialized with stored JWT token');
+        } else if (storedUser && !authApi.tokenManager.isTokenExpired(authApi.tokenManager.getRefreshToken())) {
+          // Refresh token is available, try to refresh access token
+          try {
+            await authApi.refreshToken();
+            const refreshedUser = authApi.tokenManager.getStoredUser();
+            setUser(refreshedUser);
+            setSession({ user: refreshedUser });
+            console.log('AuthContext: Refreshed access token');
+          } catch (error) {
+            console.error('AuthContext: Failed to refresh token, falling back to Supabase', error);
+            // Fall back to Supabase
+            const { data: { session: supabaseSession }, error: supabaseError } = await supabase.auth.getSession();
+            setSession(supabaseSession);
+            setUser(supabaseSession?.user ?? null);
+          }
+        } else {
+          // No valid JWT token, check Supabase session
+          const { data: { session: supabaseSession }, error: supabaseError } = await supabase.auth.getSession();
+          if (supabaseError) {
+            console.error('AuthContext: Error getting Supabase session:', supabaseError);
+          }
+          setSession(supabaseSession);
+          setUser(supabaseSession?.user ?? null);
+        }
+      } catch (error) {
+        console.error('AuthContext: Initialization error:', error);
+      } finally {
+        setLoading(false);
       }
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    };
 
-    // Listen for auth changes
+    initializeAuth();
+
+    // Listen for Supabase auth changes as fallback
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
+        if (event === 'SIGNED_OUT') {
+          authApi.tokenManager.clearTokens();
+          setUser(null);
+          setSession(null);
+        } else {
+          setSession(session);
+          setUser(session?.user ?? null);
+        }
       }
     );
 
@@ -36,51 +74,45 @@ export function AuthProvider({ children }) {
   }, []);
 
   const signIn = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) throw error;
-    return data;
+    try {
+      const result = await authApi.login(email, password);
+      setUser(result.user);
+      return result;
+    } catch (error) {
+      console.error('AuthContext: signIn error', error);
+      throw error;
+    }
   };
 
   const signUp = async (email, password, metadata) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: metadata,
-      },
-    });
-    if (error) throw error;
-
-    // Create profile record if user was created
-    if (data.user) {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: data.user.id,
-          full_name: metadata?.full_name || null,
-          phone: metadata?.phone || null,
-        });
-
-      if (profileError) {
-        console.error('Error creating profile:', profileError);
-        // Don't throw here as the user was created successfully
-      }
+    try {
+      const result = await authApi.register(email, password, metadata);
+      // Don't auto-login after signup; require verification
+      return result;
+    } catch (error) {
+      console.error('AuthContext: signUp error', error);
+      throw error;
     }
-
-    return data;
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    try {
+      await authApi.logout();
+      setUser(null);
+      setSession(null);
+    } catch (error) {
+      console.error('AuthContext: signOut error', error);
+      throw error;
+    }
   };
 
   const resetPassword = async (email) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
-    if (error) throw error;
+    try {
+      await authApi.resetPassword(email);
+    } catch (error) {
+      console.error('AuthContext: resetPassword error', error);
+      throw error;
+    }
   };
 
   const value = {
@@ -91,6 +123,8 @@ export function AuthProvider({ children }) {
     signUp,
     signOut,
     resetPassword,
+    isAdmin: authApi.isAdmin,
+    isAuthenticated: authApi.isAuthenticated,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

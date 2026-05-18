@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import authApi from './authApi';
 
 const API_HOST = import.meta.env.VITE_DJANGO_API_BASE_URL || 'http://127.0.0.1:8000';
 const API_BASE_URL = `${API_HOST.replace(/\/$/, '')}/api`;
@@ -95,7 +96,12 @@ const fetchProducts = async (params = {}, options = {}) => {
     try {
       return await fetchDjangoProducts(params);
     } catch (error) {
-      console.warn('Django products API failed, falling back to Supabase:', error);
+      console.error('Django products API failed, falling back to Supabase.', {
+        error,
+        params,
+        apiUrl: API_BASE_URL,
+        useBackend,
+      });
     }
   }
 
@@ -110,6 +116,7 @@ const fetchProductById = async (id, options = {}) => {
       const response = await fetch(`${API_BASE_URL}/products/${id}/`, {
         headers: {
           'Content-Type': 'application/json',
+          Accept: 'application/json',
         },
       });
       if (!response.ok) {
@@ -129,4 +136,132 @@ const fetchProductById = async (id, options = {}) => {
   return data;
 };
 
-export { fetchProducts, fetchProductById, fetchDjangoProducts, fetchSupabaseProducts };
+const createProduct = async (productData, options = {}) => {
+  const useBackend = options.useBackend ?? USE_DJANGO_PRODUCTS;
+
+  if (useBackend) {
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        ...(await authApi.getAuthHeader()),
+      };
+
+      const response = await fetch(`${API_BASE_URL}/products/create/`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(productData),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Django create product failed: ${response.status} ${errorText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Django create product failed, falling back to Supabase.', {
+        error,
+        productData,
+        apiUrl: API_BASE_URL,
+        hasAuthToken: !!authApi.tokenManager.getAccessToken(),
+      });
+    }
+  }
+
+  const { data, error } = await supabase.from('menu_items').insert(productData).select().single();
+  if (error) {
+    throw error;
+  }
+  return data;
+};
+
+const updateProduct = async (id, productData, options = {}) => {
+  const useBackend = options.useBackend ?? USE_DJANGO_PRODUCTS;
+
+  if (useBackend) {
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        ...(await authApi.getAuthHeader()),
+      };
+
+      const response = await fetch(`${API_BASE_URL}/products/${id}/update/`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify(productData),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Django update product failed: ${response.status} ${errorText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Django update product failed, falling back to Supabase.', {
+        error,
+        id,
+        productData,
+        apiUrl: API_BASE_URL,
+        hasAuthToken: !!authApi.tokenManager.getAccessToken(),
+      });
+    }
+  }
+
+  const { data, error } = await supabase.from('menu_items').update(productData).eq('id', id).select().single();
+  if (error) {
+    throw error;
+  }
+  return data;
+};
+
+const deleteProduct = async (id, options = {}) => {
+  const useBackend = options.useBackend ?? USE_DJANGO_PRODUCTS;
+
+  if (useBackend) {
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        ...(await authApi.getAuthHeader()),
+      };
+
+      const response = await fetch(`${API_BASE_URL}/products/${id}/delete/`, {
+        method: 'DELETE',
+        headers,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Django delete product failed: ${response.status} ${errorText}`);
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Django delete product failed, falling back to Supabase.', {
+        error,
+        id,
+        apiUrl: API_BASE_URL,
+        hasAuthToken: !!authApi.tokenManager.getAccessToken(),
+      });
+    }
+  }
+
+  const { error } = await supabase.from('menu_items').delete().eq('id', id);
+  if (error) {
+    throw error;
+  }
+  return true;
+};
+
+export {
+  fetchProducts,
+  fetchProductById,
+  fetchDjangoProducts,
+  fetchSupabaseProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+};

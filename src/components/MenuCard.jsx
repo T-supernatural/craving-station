@@ -1,6 +1,23 @@
 import { motion } from 'framer-motion';
 import { formatNaira } from '../utils/formatNaira';
 
+const buildImageUrl = (src) => {
+  if (!src) {
+    return 'https://via.placeholder.com/720x405?text=No+image';
+  }
+
+  try {
+    const url = new URL(src);
+    url.searchParams.set('auto', 'format');
+    url.searchParams.set('fit', 'crop');
+    url.searchParams.set('w', '720');
+    url.searchParams.set('q', '80');
+    return url.toString();
+  } catch (error) {
+    return src;
+  }
+};
+
 export default function MenuCard({ item, onAdd }) {
   return (
     <motion.article
@@ -12,7 +29,7 @@ export default function MenuCard({ item, onAdd }) {
       <div className="relative aspect-[16/9] overflow-hidden">
         <img
           className="h-full w-full object-cover transition-transform duration-500 hover:scale-110"
-          src={`${item.image_url}?auto=format&fit=crop&w=720&q=80`}
+          src={buildImageUrl(item.image_url)}
           alt={item.name}
           loading="lazy"
         />

@@ -19,6 +19,7 @@ export default function Menu() {
         const { items } = await fetchProducts();
         setMenuItems(items);
       } catch (error) {
+        console.error('Menu page product fetch failed:', error);
         toast.error('Unable to fetch menu items.');
       } finally {
         setLoading(false);

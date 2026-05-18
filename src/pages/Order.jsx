@@ -8,6 +8,7 @@ import { Search, X, UtensilsCrossed } from 'lucide-react';
 import PaystackPop from '@paystack/inline-js';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
+import { fetchProducts } from '../lib/productsApi';
 import CartSidebar from '../components/CartSidebar';
 import MenuCard from '../components/MenuCard';
 import useCart from '../hooks/useCart';
@@ -54,15 +55,15 @@ export default function Order() {
     const loadData = async () => {
       setLoading(true);
 
-      const { data: menuData, error: menuError } = await supabase
-        .from('menu_items')
-        .select('*')
-        .order('created_at', { ascending: true });
-
-      if (menuError) {
+      try {
+        const { items } = await fetchProducts();
+        setMenuItems(items || []);
+      } catch (error) {
+        console.error('Order page product fetch failed:', {
+          error,
+          useBackend: import.meta.env.VITE_USE_DJANGO_PRODUCTS,
+        });
         toast.error('Unable to load menu.');
-      } else {
-        setMenuItems(menuData || []);
       }
 
       setLoading(false);
