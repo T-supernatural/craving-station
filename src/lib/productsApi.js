@@ -1,10 +1,14 @@
 import { supabase } from './supabaseClient';
 
-const API_BASE_URL = import.meta.env.VITE_DJANGO_API_BASE_URL || '/api';
-const USE_DJANGO_PRODUCTS = import.meta.env.VITE_USE_DJANGO_PRODUCTS === 'true';
+const API_HOST = import.meta.env.VITE_DJANGO_API_BASE_URL || 'http://127.0.0.1:8000';
+const API_BASE_URL = `${API_HOST.replace(/\/$/, '')}/api`;
+const USE_DJANGO_PRODUCTS = String(import.meta.env.VITE_USE_DJANGO_PRODUCTS).toLowerCase() === 'true';
 
 const normalizeBackendProductList = (payload) => {
-  const items = Array.isArray(payload) ? payload : payload.results || [];
+  const items = Array.isArray(payload)
+    ? payload
+    : payload.results ?? payload.data ?? [];
+
   return {
     items,
     meta: {
