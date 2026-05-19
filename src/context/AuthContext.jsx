@@ -61,7 +61,10 @@ export function AuthProvider({ children }) {
   const signUp = async (email, password, metadata) => {
     try {
       const result = await authApi.register(email, password, metadata);
-      // Don't auto-login after signup; require verification
+      if (result?.user) {
+        setUser(result.user);
+        setSession({ user: result.user });
+      }
       return result;
     } catch (error) {
       console.error('AuthContext: signUp error', error);

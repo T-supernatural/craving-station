@@ -44,10 +44,13 @@ class RegisterSerializer(serializers.ModelSerializer):
     )
     password = serializers.CharField(write_only=True)
     full_name = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    delivery_address = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    city = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    landmark = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     class Meta:
         model = User
-        fields = ('email', 'password', 'phone', 'full_name')
+        fields = ('email', 'password', 'phone', 'full_name', 'delivery_address', 'city', 'landmark')
         extra_kwargs = {
             'password': {'write_only': True},
         }
@@ -63,6 +66,9 @@ class RegisterSerializer(serializers.ModelSerializer):
             username=email,
             email=email,
             phone=validated_data.get('phone', ''),
+            delivery_address=validated_data.get('delivery_address', ''),
+            city=validated_data.get('city', ''),
+            landmark=validated_data.get('landmark', ''),
         )
 
         if full_name:

@@ -29,7 +29,7 @@ export default function Register() {
 
   const onSubmit = async (data) => {
     try {
-      await signUp(data.email, data.password, {
+      const result = await signUp(data.email, data.password, {
         full_name: data.fullName,
         phone: data.phone,
         delivery_address: data.deliveryAddress,
@@ -37,8 +37,12 @@ export default function Register() {
         landmark: data.landmark,
       });
 
-      toast.success('Account created! Please check your email to verify.');
-      navigate('/login');
+      toast.success('Account created successfully!');
+      if (result?.access && result?.refresh) {
+        navigate('/dashboard');
+      } else {
+        navigate('/login');
+      }
     } catch (error) {
       toast.error(error?.message || 'Registration failed. Please check your details.');
     }

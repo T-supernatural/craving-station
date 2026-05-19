@@ -79,10 +79,26 @@ const getAuthHeader = async () => {
   }
 };
 
-const register = async (email, password, phoneOrFormData, fullName = null) => {
-  const payload = typeof phoneOrFormData === 'string'
-    ? { email, password, phone: phoneOrFormData, full_name: fullName }
-    : { email, password, phone: phoneOrFormData?.phone || '', full_name: phoneOrFormData?.full_name || '' };
+const parseResponseError = async (res) => {
+  const data = await res.json().catch(() => null);
+  if (!data) return `Django request failed: ${res.status}`;
+  if (typeof data === 'string') return data;
+  if (data.detail) return data.detail;
+  const firstField = Object.values(data).flat?.()[0];
+  if (firstField) return firstField;
+  return JSON.stringify(data);
+};
+
+const register = async (email, password, metadata = {}) => {
+  const payload = {
+    email,
+    password,
+    phone: metadata.phone || '',
+    full_name: metadata.full_name || '',
+    delivery_address: metadata.delivery_address || '',
+    city: metadata.city || '',
+    landmark: metadata.landmark || '',
+  };
 
   const res = await fetch(`${API_BASE_URL}/auth/register/`, {
     method: 'POST',
@@ -91,13 +107,19 @@ const register = async (email, password, phoneOrFormData, fullName = null) => {
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err?.detail || err?.email?.[0] || `Django register failed: ${res.status}`);
+    const message = await parseResponseError(res);
+    throw new Error(message || `Django register failed: ${res.status}`);
   }
 
-  const user = await res.json();
-  tokenManager.setTokens(null, null, user);
-  return { user, backend: 'django' };
+  const data = await res.json();
+  const { access, refresh, user } = data;
+  if (access && refresh) {
+    tokenManager.setTokens(access, refresh, user);
+  } else if (user) {
+    tokenManager.setTokens(null, null, user);
+  }
+
+  return { user, access, refresh, backend: 'django' };
 };
 
 const login = async (email, password) => {
@@ -108,8 +130,8 @@ const login = async (email, password) => {
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err?.detail || 'Django login failed');
+    const message = await parseResponseError(res);
+    throw new Error(message || 'Django login failed');
   }
 
   const { access, refresh, user } = await res.json();
@@ -128,9 +150,9 @@ async function refreshToken() {
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
+    const message = await parseResponseError(res);
     tokenManager.clearTokens();
-    throw new Error(err?.detail || 'Token refresh failed');
+    throw new Error(message || 'Token refresh failed');
   }
 
   const { access } = await res.json();

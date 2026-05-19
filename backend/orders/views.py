@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Order
@@ -28,7 +28,7 @@ class OrderListAPIView(ListAPIView):
 
 class OrderCreateAPIView(CreateAPIView):
     serializer_class = OrderCreateSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [AllowAny]
 
     def perform_create(self, serializer):
         if self.request.user.is_authenticated:
