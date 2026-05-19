@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { supabase } from '../lib/supabaseClient';
+import { fetchGalleryImages } from '../lib/galleryApi';
 import { Filter } from 'lucide-react';
 
 export default function GalleryGrid() {
@@ -17,17 +17,15 @@ export default function GalleryGrid() {
 
   const fetchImages = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('gallery_images')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching gallery images:', error);
-    } else {
+    try {
+      const data = await fetchGalleryImages();
       setImages(data || []);
+    } catch (error) {
+      console.error('Error fetching gallery images:', error);
+      setImages([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const filteredImages = selectedCategory === 'All'

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { supabase } from '../../lib/supabaseClient';
+import { fetchUserReservations } from '../../lib/reservationsApi';
 
 export default function ReservationsTab() {
   const { user } = useAuth();
@@ -8,17 +8,19 @@ export default function ReservationsTab() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
-      supabase
-        .from('reservations')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .then(({ data, error }) => {
-          if (data) setReservations(data);
-          setLoading(false);
-        });
-    }
+    const loadReservations = async () => {
+      if (!user) return;
+      try {
+        const data = await fetchUserReservations();
+        setReservations(data || []);
+      } catch (error) {
+        console.error('Failed to fetch reservations:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadReservations();
   }, [user]);
 
   if (loading) return <p className="text-yakoyo-muted">Loading...</p>;

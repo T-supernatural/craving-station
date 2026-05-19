@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import authApi from '../lib/authApi';
-import { supabase } from '../lib/supabaseClient';
 
 export default function AdminRoute({ children }) {
   const { user, loading } = useAuth();
@@ -22,7 +21,6 @@ export default function AdminRoute({ children }) {
     const checkAdminStatus = async () => {
       console.log('AdminRoute: Checking admin status for user:', userKey);
 
-      // Check Django stored user first (highest priority)
       const djangoUser = authApi.tokenManager.getStoredUser();
       if (djangoUser?.role === 'admin') {
         console.log('AdminRoute: User is admin (Django)');
@@ -30,25 +28,11 @@ export default function AdminRoute({ children }) {
         return;
       }
 
-      // Fall back to Supabase profile check
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
-          .single();
-
-        if (error) {
-          console.warn('AdminRoute: Error fetching Supabase profile:', error);
-          setIsAdmin(false);
-          return;
-        }
-
-        const isAdminRole = data?.role === 'admin';
-        console.log('AdminRoute: User role (Supabase):', data?.role, 'isAdmin:', isAdminRole);
-        setIsAdmin(isAdminRole);
-      } catch (error) {
-        console.error('AdminRoute: Unexpected error checking admin status:', error);
+      if (user?.role === 'admin') {
+        console.log('AdminRoute: User is admin (AuthContext)');
+        setIsAdmin(true);
+      } else {
+        console.log('AdminRoute: User is not admin');
         setIsAdmin(false);
       }
     };

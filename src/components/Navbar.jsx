@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../lib/supabaseClient';
 
 export default function Navbar() {
   const { user, signOut, loading } = useAuth();
@@ -24,22 +23,9 @@ export default function Navbar() {
       setIsAdmin(false);
       return;
     }
-    if (lastCheckedId.current === user.id) return; // already checked
-    lastCheckedId.current = user.id;
 
-    supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-      .then(({ data, error }) => {
-        if (!error && data?.role === 'admin') {
-          setIsAdmin(true);
-        } else {
-          setIsAdmin(false);
-        }
-      });
-  }, [user?.id]);
+    setIsAdmin(user.role === 'admin');
+  }, [user?.id, user?.role]);
 
   const getGuestLinks = () => [
     { path: '/', label: 'Home' },

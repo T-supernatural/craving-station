@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
-import { supabase } from '../../lib/supabaseClient';
+import authApi from '../../lib/authApi';
 
 const schema = z.object({
   fullName: z.string().min(2, 'Full name is required'),
@@ -30,69 +30,43 @@ export default function ProfileTab() {
 
   useEffect(() => {
     if (user) {
-      supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-        .then(async ({ data, error }) => {
-          if (error) {
-            // If profile doesn't exist, create one
-            if (error.code === 'PGRST116') {
-              const { data: newProfile, error: createError } = await supabase
-                .from('profiles')
-                .insert({
-                  id: user.id,
-                  full_name: user.user_metadata?.full_name || null,
-                  phone: user.user_metadata?.phone || null,
-                })
-                .select()
-                .single();
+      const profileData = {
+        full_name: user.full_name || user.email?.split('@')[0] || '',
+        phone: user.phone || '',
+        delivery_address: user.delivery_address || '',
+        city: user.city || '',
+        landmark: user.landmark || '',
+      };
 
-              if (!createError && newProfile) {
-                setProfile(newProfile);
-                reset({
-                  fullName: newProfile.full_name || '',
-                  phone: newProfile.phone || '',
-                  deliveryAddress: newProfile.delivery_address || '',
-                  city: newProfile.city || '',
-                  landmark: newProfile.landmark || '',
-                });
-              }
-            }
-          } else {
-            setProfile(data);
-            reset({
-              fullName: data.full_name || '',
-              phone: data.phone || '',
-              deliveryAddress: data.delivery_address || '',
-              city: data.city || '',
-              landmark: data.landmark || '',
-            });
-          }
-          setLoading(false);
-        });
+      setProfile(profileData);
+      reset({
+        fullName: profileData.full_name,
+        phone: profileData.phone,
+        deliveryAddress: profileData.delivery_address,
+        city: profileData.city,
+        landmark: profileData.landmark,
+      });
+      setLoading(false);
     }
   }, [user, reset]);
 
   const onSubmit = async (data) => {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          full_name: data.fullName,
-          phone: data.phone,
-          delivery_address: data.deliveryAddress,
-          city: data.city,
-          landmark: data.landmark,
-        })
-        .eq('id', user.id);
+      const result = await authApi.updateProfile({
+        full_name: data.fullName,
+        phone: data.phone,
+        delivery_address: data.deliveryAddress,
+        city: data.city,
+        landmark: data.landmark,
+      });
 
-      if (error) throw error;
       toast.success('Profile updated!');
-      setProfile({ ...profile, ...data });
+      setProfile(data);
+      if (result?.user) {
+        // Update any local auth state if necessary
+      }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.message || 'Unable to update profile');
     }
   };
 

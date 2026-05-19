@@ -27,6 +27,8 @@ INSTALLED_APPS = [
     'orders',
     'bookings',
     'gallery',
+    'notifications',
+    'site_settings',
     'payments',
 ]
 

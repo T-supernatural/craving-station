@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabaseClient';
+import { fetchOrders, updateOrderStatus } from '../../lib/ordersApi';
 import { formatNaira } from '../../utils/formatNaira';
 import toast from 'react-hot-toast';
 
@@ -9,33 +9,30 @@ export default function AdminOrders() {
   const [filter, setFilter] = useState('all');
 
   useEffect(() => {
-    fetchOrders();
+    fetchOrdersList();
   }, [filter]);
 
-  const fetchOrders = async () => {
+  const fetchOrdersList = async () => {
     setLoading(true);
-    let query = supabase.from('orders').select('*').order('created_at', { ascending: false });
-
-    if (filter !== 'all') {
-      query = query.eq('status', filter);
-    }
-
-    const { data, error } = await query;
-    if (error) {
-      toast.error('Failed to load orders');
-    } else {
+    try {
+      const data = await fetchOrders({ status: filter !== 'all' ? filter : undefined });
       setOrders(data || []);
+    } catch (error) {
+      console.error('Failed to load orders:', error);
+      toast.error('Failed to load orders');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const updateStatus = async (id, status) => {
-    const { error } = await supabase.from('orders').update({ status }).eq('id', id);
-    if (error) {
-      toast.error('Failed to update status');
-    } else {
+    try {
+      await updateOrderStatus(id, status);
       toast.success('Status updated');
-      fetchOrders();
+      fetchOrdersList();
+    } catch (error) {
+      console.error('Failed to update status:', error);
+      toast.error('Failed to update status');
     }
   };
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import { supabase } from '../lib/supabaseClient';
+import { createReservation } from '../lib/reservationsApi';
 import ReservationForm from '../components/ReservationForm';
 
 export default function Reservations() {
@@ -8,26 +8,24 @@ export default function Reservations() {
 
   const onSubmit = async (values) => {
     setIsSubmitting(true);
-    const { error } = await supabase.from('reservations').insert([
-      {
+
+    try {
+      await createReservation({
         name: values.name,
         email: values.email,
         phone: values.phone,
         date: values.date,
         time: values.time,
         guests: values.guests,
-        special_requests: values.special_requests
-      }
-    ]);
-
-    setIsSubmitting(false);
-
-    if (error) {
+        special_requests: values.special_requests,
+      });
+      toast.success('Catering request submitted! We will follow up shortly.');
+    } catch (error) {
+      console.error('Reservation submission error:', error);
       toast.error('Could not place booking.');
-      return;
+    } finally {
+      setIsSubmitting(false);
     }
-
-    toast.success('Catering request submitted! We will follow up shortly.');
   };
 
   return (

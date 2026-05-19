@@ -3,6 +3,14 @@ import authApi from './authApi';
 const API_HOST = import.meta.env.VITE_DJANGO_API_BASE_URL || 'http://127.0.0.1:8000';
 const API_BASE_URL = `${API_HOST.replace(/\/$/, '')}/api`;
 
+const getOptionalAuthHeader = async () => {
+  try {
+    return await authApi.getAuthHeader();
+  } catch {
+    return {};
+  }
+};
+
 /**
  * Fetch orders for the authenticated user.
  */
@@ -59,8 +67,7 @@ export const fetchOrders = async (params = {}) => {
  * Create a new order.
  */
 export const createOrder = async (orderData) => {
-  const headers = await authApi.getAuthHeader();
-  if (!headers.Authorization) throw new Error('No valid token for order creation');
+  const headers = await getOptionalAuthHeader();
 
   const response = await fetch(`${API_BASE_URL}/orders/create/`, {
     method: 'POST',
@@ -78,6 +85,61 @@ export const createOrder = async (orderData) => {
   }
 
   return await response.json();
+};
+
+/**
+ * Update order status.
+ */
+export const updateOrderStatus = async (id, status, paymentReference) => {
+  const headers = await getOptionalAuthHeader();
+  const body = { status };
+  if (paymentReference) {
+    body.payment_reference = paymentReference;
+  }
+
+  const response = await fetch(`${API_BASE_URL}/orders/${id}/update/`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      ...headers,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err?.detail || `Failed to update order: ${response.status}`);
+  }
+
+  return await response.json();
+};
+
+/**
+ * Delete an order.
+ */
+export const deleteOrder = async (id, paymentReference) => {
+  const headers = await getOptionalAuthHeader();
+  const url = new URL(`${API_BASE_URL}/orders/${id}/delete/`);
+  if (paymentReference) {
+    url.searchParams.set('payment_reference', paymentReference);
+  }
+
+  const response = await fetch(url.toString(), {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      ...headers,
+    },
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err?.detail || `Failed to delete order: ${response.status}`);
+  }
+
+  return true;
 };
 
 /**
@@ -103,4 +165,28 @@ export const updateOrderStatus = async (id, status) => {
   }
 
   return await response.json();
+};
+
+/**
+ * Delete an order.
+ */
+export const deleteOrder = async (id) => {
+  const headers = await authApi.getAuthHeader();
+  if (!headers.Authorization) throw new Error('No valid token for order deletion');
+
+  const response = await fetch(`${API_BASE_URL}/orders/${id}/delete/`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      ...headers,
+    },
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err?.detail || `Failed to delete order: ${response.status}`);
+  }
+
+  return true;
 };

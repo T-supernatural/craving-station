@@ -21,6 +21,9 @@ class UserSerializer(serializers.ModelSerializer):
             'phone',
             'role',
             'profile_image',
+            'delivery_address',
+            'city',
+            'landmark',
         )
         read_only_fields = ('id', 'username', 'role')
 

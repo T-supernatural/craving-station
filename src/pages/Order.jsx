@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 import { Search, X, UtensilsCrossed } from 'lucide-react';
 import PaystackPop from '@paystack/inline-js';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../lib/supabaseClient';
+import { createOrder, updateOrderStatus, deleteOrder } from '../lib/ordersApi';
 import { fetchProducts } from '../lib/productsApi';
 import CartSidebar from '../components/CartSidebar';
 import MenuCard from '../components/MenuCard';
@@ -73,74 +73,15 @@ export default function Order() {
 
   useEffect(() => {
     if (user) {
-      supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-        .then(async ({ data, error }) => {
-          if (error) {
-            // If profile doesn't exist, create one
-            if (error.code === 'PGRST116') {
-              console.log('Profile not found, creating new profile...');
-              const { data: newProfile, error: createError } = await supabase
-                .from('profiles')
-                .insert({
-                  id: user.id,
-                  full_name: user.user_metadata?.full_name || null,
-                  phone: user.user_metadata?.phone || null,
-                })
-                .select()
-                .single();
-
-              if (createError) {
-                console.error('Failed to create profile:', createError);
-                // Fallback: use auth user data directly
-                console.log('Using auth user data as fallback...');
-                setProfile({
-                  id: user.id,
-                  full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
-                  phone: user.user_metadata?.phone || null,
-                  delivery_address: null,
-                  city: null,
-                  landmark: null,
-                });
-                toast('Using your account information for this order.');
-              } else if (newProfile) {
-                setProfile(newProfile);
-              }
-            } else {
-              console.error('Error fetching profile:', error);
-              // Fallback: use auth user data directly
-              console.log('Using auth user data as fallback due to fetch error...');
-              setProfile({
-                id: user.id,
-                full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
-                phone: user.user_metadata?.phone || null,
-                delivery_address: null,
-                city: null,
-                landmark: null,
-              });
-              toast('Using your account information for this order.');
-            }
-          } else {
-            setProfile(data);
-          }
-        })
-        .catch((err) => {
-          console.error('Profile loading error:', err);
-          // Final fallback: use auth user data
-          console.log('Using auth user data as final fallback...');
-          setProfile({
-            id: user.id,
-            full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
-            phone: user.user_metadata?.phone || null,
-            delivery_address: null,
-            city: null,
-            landmark: null,
-          });
-          toast('Using your account information for this order.');
-        });
+      setProfile({
+        id: user.id,
+        full_name: user.full_name || user.email?.split('@')[0] || 'User',
+        phone: user.phone || '',
+        delivery_address: user.delivery_address || '',
+        city: user.city || '',
+        landmark: user.landmark || '',
+        email: user.email || '',
+      });
     } else {
       setProfile(null);
     }
@@ -240,32 +181,21 @@ export default function Order() {
       const paymentRef = 'cravingstation_' + new Date().getTime();
 
       // STEP 1: Save order BEFORE opening Paystack with status 'pending_payment'
-      const { data: savedOrder, error: saveError } = await supabase
-        .from('orders')
-        .insert({
-          user_id: user?.id ?? null,
-          customer_email: cleanEmail,
-          customer_name: customerName,
-          customer_phone: customerPhone,
-          delivery_address: deliveryAddress,
-          city: city,
-          landmark: landmark ?? '',
-          delivery_notes: deliveryNotes ?? '',
-          items: cartItems,
-          total: orderTotal,
-          delivery_fee: deliveryFee,
-          paystack_payment_id: paymentRef,
-          status: 'pending_payment',
-        })
-        .select()
-        .single();
-
-      if (saveError) {
-        console.error('Order pre-save error:', saveError);
-        toast.error('Could not initialize order. Please try again.');
-        setProcessing(false);
-        return;
-      }
+      const savedOrder = await createOrder({
+        customer_email: cleanEmail,
+        customer_name: customerName,
+        customer_phone: customerPhone,
+        delivery_address: deliveryAddress,
+        city,
+        landmark: landmark ?? '',
+        delivery_notes: deliveryNotes ?? '',
+        items: cartItems,
+        subtotal: subTotal,
+        delivery_fee: deliveryFee,
+        total: orderTotal,
+        payment_reference: paymentRef,
+        status: 'pending_payment',
+      });
 
       const orderId = savedOrder.id;
 
@@ -282,19 +212,12 @@ export default function Order() {
           paymentHandled.current = true;
 
           try {
-            // Update order status to confirmed
-            await supabase
-              .from('orders')
-              .update({
-                status: 'pending',
-                paystack_payment_id: transaction.reference,
-              })
-              .eq('id', orderId);
+            await updateOrderStatus(orderId, 'pending', transaction.reference);
           } catch (err) {
             console.error('Status update error:', err);
             // Order already saved — not critical
           } finally {
-            cart.clearCart(); // clear the cart using the hook method
+            cart.clearCart();
             setProcessing(false);
             toast.success('Order placed successfully! 🎉');
             navigate('/order-confirmation');
@@ -304,11 +227,11 @@ export default function Order() {
           if (paymentHandled.current) return;
           paymentHandled.current = true;
 
-          // Delete the pending_payment order since user cancelled
-          await supabase
-            .from('orders')
-            .delete()
-            .eq('id', orderId);
+          try {
+            await deleteOrder(orderId, paymentRef);
+          } catch (err) {
+            console.error('Failed to cancel order on payment cancel:', err);
+          }
 
           toast.error('Payment cancelled. Your order was not placed.');
           setProcessing(false);

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabaseClient';
+import { fetchReservations, updateReservationStatus } from '../../lib/reservationsApi';
+import { createNotification } from '../../lib/notificationsApi';
 import toast from 'react-hot-toast';
 
 export default function AdminReservations() {
@@ -10,30 +11,27 @@ export default function AdminReservations() {
   const [cancelNotes, setCancelNotes] = useState('');
 
   useEffect(() => {
-    fetchReservations();
+    fetchReservationsList();
   }, [filter]);
 
-  const fetchReservations = async () => {
+  const fetchReservationsList = async () => {
     setLoading(true);
-    let query = supabase.from('reservations').select('*').order('created_at', { ascending: false });
-
-    if (filter !== 'all') {
-      query = query.eq('status', filter);
-    }
-
-    const { data, error } = await query;
-    if (error) {
-      toast.error('Failed to load reservations');
-    } else {
+    try {
+      const data = await fetchReservations({ status: filter !== 'all' ? filter : undefined });
       setReservations(data || []);
+    } catch (error) {
+      console.error('Failed to load reservations:', error);
+      toast.error('Failed to load reservations');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const sendNotification = async (reservation, newStatus, notes = '') => {
     if (!reservation.user_id) return; // Skip notifications for guest reservations
 
-    let title, message;
+    let title = '';
+    let message = '';
 
     if (newStatus === 'confirmed') {
       title = 'Booking Confirmed ✅';
@@ -48,14 +46,14 @@ export default function AdminReservations() {
     }
 
     if (title && message) {
-      const { error } = await supabase.from('notifications').insert({
-        user_id: reservation.user_id,
-        title,
-        message,
-        type: 'reservation'
-      });
-
-      if (error) {
+      try {
+        await createNotification({
+          user_id: reservation.user_id,
+          title,
+          message,
+          type: 'reservation',
+        });
+      } catch (error) {
         console.error('Failed to send notification:', error);
       }
     }
@@ -63,26 +61,15 @@ export default function AdminReservations() {
 
   const updateStatus = async (id, status, notes = '') => {
     try {
-      const updateData = { status };
-      if (notes) {
-        updateData.admin_notes = notes;
-      }
+      await updateReservationStatus(id, status, notes);
 
-      const { error } = await supabase
-        .from('reservations')
-        .update(updateData)
-        .eq('id', id);
-
-      if (error) throw error;
-
-      // Send notification to customer
-      const reservation = reservations.find(r => r.id === id);
+      const reservation = reservations.find((r) => r.id === id);
       if (reservation) {
         await sendNotification(reservation, status, notes);
       }
 
       toast.success('Status updated');
-      fetchReservations();
+      fetchReservationsList();
       setCancellingId(null);
       setCancelNotes('');
     } catch (error) {

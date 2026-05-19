@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabaseClient';
+import { fetchGalleryImages, uploadGalleryImage, deleteGalleryImage } from '../../lib/galleryApi';
 import toast from 'react-hot-toast';
 import { Image, Upload, X } from 'lucide-react';
 
@@ -15,87 +15,41 @@ export default function AdminGallery() {
 
   const fetchImages = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('gallery_images')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      toast.error('Failed to load gallery');
-    } else {
+    try {
+      const data = await fetchGalleryImages();
       setImages(data || []);
+    } catch (error) {
+      console.error('Failed to load gallery:', error);
+      toast.error('Failed to load gallery');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  };
-
-  const uploadImage = async (file) => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
-    const filePath = `gallery/${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('gallery-images')
-      .upload(filePath, file);
-
-    if (uploadError) {
-      toast.error(`Upload failed: ${uploadError.message}`);
-      return null;
-    }
-
-    const { data } = supabase.storage
-      .from('gallery-images')
-      .getPublicUrl(filePath);
-
-    return { url: data.publicUrl, path: filePath };
   };
 
   const handleUpload = async (formData) => {
     setUploading(true);
     try {
-      const uploadResult = await uploadImage(formData.file);
-      if (!uploadResult) return;
-
-      const { error } = await supabase
-        .from('gallery_images')
-        .insert({
-          image_url: uploadResult.url,
-          caption: formData.caption,
-          category: formData.category,
-          storage_path: uploadResult.path
-        });
-
-      if (error) throw error;
-
+      await uploadGalleryImage(formData.file, formData.caption);
       toast.success('Image uploaded successfully');
       setShowUpload(false);
       fetchImages();
     } catch (error) {
+      console.error('Failed to save image:', error);
       toast.error('Failed to save image');
     } finally {
       setUploading(false);
     }
   };
 
-  const deleteImage = async (id, storagePath) => {
+  const deleteImage = async (id) => {
     if (!confirm('Delete this image?')) return;
 
     try {
-      // Delete from storage
-      await supabase.storage
-        .from('gallery-images')
-        .remove([storagePath]);
-
-      // Delete from database
-      const { error } = await supabase
-        .from('gallery_images')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
+      await deleteGalleryImage(id);
       toast.success('Image deleted');
       fetchImages();
     } catch (error) {
+      console.error('Failed to delete image:', error);
       toast.error('Failed to delete image');
     }
   };
