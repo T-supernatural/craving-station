@@ -20,12 +20,14 @@ class UserSerializer(serializers.ModelSerializer):
             'full_name',
             'phone',
             'role',
+            'is_staff',
+            'is_superuser',
             'profile_image',
             'delivery_address',
             'city',
             'landmark',
         )
-        read_only_fields = ('id', 'username', 'role')
+        read_only_fields = ('id', 'username', 'role', 'is_staff', 'is_superuser')
 
     def get_full_name(self, obj):
         if obj.get_full_name():

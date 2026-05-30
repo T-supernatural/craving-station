@@ -24,8 +24,8 @@ export default function Navbar() {
       return;
     }
 
-    setIsAdmin(user.role === 'admin');
-  }, [user?.id, user?.role]);
+    setIsAdmin(user.role === 'admin' || user.is_staff || user.is_superuser);
+  }, [user?.id, user?.role, user?.is_staff, user?.is_superuser]);
 
   const getGuestLinks = () => [
     { path: '/', label: 'Home' },
@@ -60,8 +60,9 @@ export default function Navbar() {
   };
 
   const getUserInitial = () => {
-    if (!user?.user_metadata?.full_name) return '?';
-    return user.user_metadata.full_name.charAt(0).toUpperCase();
+    if (!user) return '?';
+    const name = user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email || user.username || '?';
+    return name.charAt(0).toUpperCase();
   };
 
   return (

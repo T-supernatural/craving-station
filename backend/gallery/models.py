@@ -5,12 +5,16 @@ class GalleryImage(models.Model):
         ('food', 'Food'),
         ('ambiance', 'Ambiance'),
         ('events', 'Events'),
-        ('bakery', 'Bakery'),
+        ('catering', 'Catering'),
+        ('behind_the_scenes', 'Behind the Scenes'),
     ]
 
+    title = models.CharField(max_length=120, blank=True)
     image_url = models.URLField()
+    alt_text = models.CharField(max_length=255, blank=True)
     caption = models.CharField(max_length=255, blank=True)
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='food')
+    is_featured = models.BooleanField(default=False)
     storage_path = models.CharField(max_length=255, blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
@@ -18,4 +22,4 @@ class GalleryImage(models.Model):
         ordering = ['-uploaded_at']
 
     def __str__(self):
-        return self.caption or self.category
+        return self.title or self.caption or self.category

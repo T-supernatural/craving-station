@@ -22,13 +22,13 @@ export default function AdminRoute({ children }) {
       console.log('AdminRoute: Checking admin status for user:', userKey);
 
       const djangoUser = authApi.tokenManager.getStoredUser();
-      if (djangoUser?.role === 'admin') {
+      if (djangoUser && (djangoUser.role === 'admin' || djangoUser.is_staff || djangoUser.is_superuser)) {
         console.log('AdminRoute: User is admin (Django)');
         setIsAdmin(true);
         return;
       }
 
-      if (user?.role === 'admin') {
+      if (user && (user.role === 'admin' || user.is_staff || user.is_superuser)) {
         console.log('AdminRoute: User is admin (AuthContext)');
         setIsAdmin(true);
       } else {

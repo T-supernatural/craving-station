@@ -14,5 +14,8 @@ class CustomUser(AbstractUser):
     city = models.CharField(max_length=100, blank=True, null=True)
     landmark = models.CharField(max_length=255, blank=True, null=True)
 
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
+
     def __str__(self):
         return self.email or self.username

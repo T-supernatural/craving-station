@@ -221,7 +221,7 @@ const resetPassword = async (email) => {
 
 const isAdmin = () => {
   const user = tokenManager.getStoredUser();
-  return user?.role === 'admin';
+  return !!(user && (user.role === 'admin' || user.is_staff || user.is_superuser));
 };
 
 const isAuthenticated = () => tokenManager.hasValidToken();

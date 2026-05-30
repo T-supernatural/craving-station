@@ -7,9 +7,12 @@ class GalleryImageSerializer(serializers.ModelSerializer):
         model = GalleryImage
         fields = [
             'id',
+            'title',
             'image_url',
+            'alt_text',
             'caption',
             'category',
+            'is_featured',
             'storage_path',
             'uploaded_at',
         ]
@@ -19,5 +22,5 @@ class GalleryImageSerializer(serializers.ModelSerializer):
 class GalleryImageCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = GalleryImage
-        fields = ['id', 'image_url', 'caption', 'category', 'storage_path']
+        fields = ['id', 'title', 'image_url', 'alt_text', 'caption', 'category', 'is_featured', 'storage_path']
         read_only_fields = ['id', 'image_url', 'storage_path']
