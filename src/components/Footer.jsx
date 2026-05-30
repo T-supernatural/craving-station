@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Instagram, Facebook, Twitter, Mail, Clock, MapPin, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
 import toast from 'react-hot-toast';
 
 export default function Footer() {
@@ -14,15 +13,20 @@ export default function Footer() {
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('newsletter_subscribers')
-        .insert({ email });
+      const API_HOST = import.meta.env.VITE_DJANGO_API_BASE_URL || 'http://127.0.0.1:8000';
+      const API_BASE_URL = `${API_HOST.replace(/\/$/, '')}/api`;
+      const res = await fetch(`${API_BASE_URL}/newsletter/subscribe/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ email }),
+      });
 
-      if (error) {
-        if (error.code === '23505') { // Unique constraint violation
-          toast.success('You\'re already subscribed!');
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        if (errData && errData.email && Array.isArray(errData.email) && errData.email[0].includes('unique')) {
+          toast.success("You're already subscribed!");
         } else {
-          throw error;
+          throw new Error(`Subscribe failed: ${res.status}`);
         }
       } else {
         toast.success('Successfully subscribed to our newsletter!');
@@ -41,9 +45,9 @@ export default function Footer() {
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           {/* Brand Section */}
           <div className="lg:col-span-1">
-            <h3 className="text-xl font-serif text-white">Craving Station</h3>
+            <h3 className="text-xl font-serif text-white">Johjay Foods</h3>
             <p className="mt-3 text-sm leading-relaxed">
-              Modern bakery and catering experiences crafted for celebrations, bespoke events, and everyday indulgence.
+              Professional catering and event food services — cakes, small chops, cocktails, and bespoke event menus.
             </p>
             <div className="mt-4 flex gap-3">
               <a href="#" aria-label="Instagram" className="text-white hover:text-yakoyo-accent transition-colors">
@@ -62,7 +66,7 @@ export default function Footer() {
           <div>
             <h4 className="mb-4 text-sm font-semibold text-white uppercase tracking-wider">Explore</h4>
             <ul className="space-y-2">
-              <li><Link className="hover:text-yakoyo-accent transition-colors" to="/menu">Bakery Collection</Link></li>
+              <li><Link className="hover:text-yakoyo-accent transition-colors" to="/menu">Menu</Link></li>
               <li><Link className="hover:text-yakoyo-accent transition-colors" to="/reservations">Catering</Link></li>
               <li><Link className="hover:text-yakoyo-accent transition-colors" to="/gallery">Gallery</Link></li>
               <li><Link className="hover:text-yakoyo-accent transition-colors" to="/order">Order Online</Link></li>
@@ -83,7 +87,7 @@ export default function Footer() {
               </div>
               <div className="flex items-center gap-2">
                 <Mail size={16} className="text-yakoyo-accent" />
-                <span>hello@cravingstation.com</span>
+                <span>hello@johjayfoods.com</span>
               </div>
             </div>
           </div>
@@ -134,7 +138,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="mt-8 border-t border-white/10 pt-6">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-            <p className="text-xs">© 2025 Craving Station Bakery. All rights reserved.</p>
+            <p className="text-xs">© 2026 Johjay Foods. All rights reserved.</p>
             <div className="flex gap-6 text-xs">
               <Link className="hover:text-yakoyo-accent transition-colors" to="/privacy">Privacy Policy</Link>
               <Link className="hover:text-yakoyo-accent transition-colors" to="/terms">Terms of Service</Link>

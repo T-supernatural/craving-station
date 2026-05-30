@@ -29,20 +29,20 @@ export default function Navbar() {
 
   const getGuestLinks = () => [
     { path: '/', label: 'Home' },
-    { path: '/menu', label: 'Bakery Collection' },
+    { path: '/menu', label: 'Menu' },
     { path: '/gallery', label: 'Gallery' },
     { path: '/reservations', label: 'Catering' },
-    { path: '/order', label: 'Bakery Order' },
+    { path: '/order', label: 'Order' },
     { path: '/login', label: 'Login' },
     { path: '/register', label: 'Register' }
   ];
 
   const getCustomerLinks = () => [
     { path: '/', label: 'Home' },
-    { path: '/menu', label: 'Bakery Collection' },
+    { path: '/menu', label: 'Menu' },
     { path: '/gallery', label: 'Gallery' },
     { path: '/reservations', label: 'Catering' },
-    { path: '/order', label: 'Bakery Order' }
+    { path: '/order', label: 'Order' }
   ];
 
   const getAdminLinks = () => [
@@ -69,7 +69,7 @@ export default function Navbar() {
     <nav className={`fixed inset-x-0 top-0 z-50 transition-all ${scrolled ? 'bg-yakoyo-surface/90 backdrop-blur-lg' : 'bg-transparent'}`}>
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 text-sm md:px-8">
         <Link to="/" className="text-3xl font-bold font-serif tracking-tight text-yakoyo-accent">
-          Craving <span className="text-white font-normal text-2xl">Station</span>
+          Johjay <span className="text-white font-normal text-2xl">Foods</span>
         </Link>
 
         <div className="md:hidden">

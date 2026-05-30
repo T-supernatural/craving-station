@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabaseClient';
+import authApi from '../../lib/authApi';
 import toast from 'react-hot-toast';
 import { Save, Settings as SettingsIcon } from 'lucide-react';
 import { formatNaira } from '../../utils/formatNaira';
@@ -34,17 +34,19 @@ export default function AdminSettings() {
   const fetchSettings = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('restaurant_settings')
-        .select('*')
-        .eq('id', 1)
-        .limit(1);
+      const headers = await authApi.getAuthHeader();
+      const API_HOST = import.meta.env.VITE_DJANGO_API_BASE_URL || 'http://127.0.0.1:8000';
+      const API_BASE_URL = `${API_HOST.replace(/\/$/, '')}/api`;
+      const res = await fetch(`${API_BASE_URL}/settings/`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...(headers || {}) },
+      });
 
-      if (error) {
-        throw error;
+      if (!res.ok) {
+        throw new Error(`Failed to load settings: ${res.status}`);
       }
 
-      const record = data?.[0];
+      const record = await res.json();
       if (record) {
         setSettings((prev) => ({
           ...prev,
@@ -84,20 +86,19 @@ export default function AdminSettings() {
         accept_orders: Boolean(settings.accept_orders),
         accept_reservations: Boolean(settings.accept_reservations),
         opening_hours: settings.opening_hours,
-        updated_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase
-        .from('restaurant_settings')
-        .update(payload)
-        .eq('id', 1);
+      const headers = await authApi.getAuthHeader();
+      const API_HOST = import.meta.env.VITE_DJANGO_API_BASE_URL || 'http://127.0.0.1:8000';
+      const API_BASE_URL = `${API_HOST.replace(/\/$/, '')}/api`;
+      const res = await fetch(`${API_BASE_URL}/settings/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...(headers || {}) },
+        body: JSON.stringify(payload),
+      });
 
-      if (error) {
-        // fallback to upsert if row missing
-        const { error: upsertError } = await supabase
-          .from('restaurant_settings')
-          .upsert({ id: 1, ...payload });
-        if (upsertError) throw upsertError;
+      if (!res.ok) {
+        throw new Error(`Failed to save settings: ${res.status}`);
       }
 
       toast.success('Delivery fee updated successfully');
@@ -148,7 +149,7 @@ export default function AdminSettings() {
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-serif flex items-center gap-3">
           <SettingsIcon size={32} />
-          Bakery Settings
+          Business Settings
         </h1>
         <button
           onClick={handleSave}
@@ -166,7 +167,7 @@ export default function AdminSettings() {
           <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Bakery Name</label>
+                <label className="block text-sm font-medium mb-2">Business Name</label>
               <input
                 type="text"
                 value={settings.restaurant_name}
@@ -175,7 +176,7 @@ export default function AdminSettings() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Bakery Description</label>
+              <label className="block text-sm font-medium mb-2">Business Description</label>
               <textarea
                 value={settings.restaurant_description || ''}
                 onChange={(e) => updateSetting('restaurant_description', e.target.value)}

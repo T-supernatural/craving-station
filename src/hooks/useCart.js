@@ -21,12 +21,12 @@ export default function useCart() {
   const totalItems = useMemo(() => items.reduce((sum, item) => sum + item.quantity, 0), [items]);
 
   useEffect(() => {
-    const saved = localStorage.getItem('cravingstation-cart');
+    const saved = localStorage.getItem('johjayfoods-cart');
     if (saved) setItems(JSON.parse(saved));
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('cravingstation-cart', JSON.stringify(items));
+    localStorage.setItem('johjayfoods-cart', JSON.stringify(items));
   }, [items]);
 
   return {

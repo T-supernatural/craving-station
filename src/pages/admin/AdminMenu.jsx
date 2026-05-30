@@ -58,7 +58,7 @@ export default function AdminMenu() {
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-serif">Menu Management</h1>
         <button onClick={() => setShowModal(true)} className="rounded-xl bg-yakoyo-accent px-4 py-2 font-semibold text-black">
-          Add New Bakery Item
+          Add New Menu Item
         </button>
       </div>
 
@@ -185,7 +185,7 @@ function MenuModal({ item, onClose, onSave }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="glass-card rounded-xl p-6 w-full max-w-md">
-        <h2 className="text-xl font-serif mb-4">{item ? 'Edit Bakery Item' : 'Add New Bakery Item'}</h2>
+        <h2 className="text-xl font-serif mb-4">{item ? 'Edit Menu Item' : 'Add New Menu Item'}</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"

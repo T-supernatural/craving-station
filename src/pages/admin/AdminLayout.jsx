@@ -25,14 +25,15 @@ export default function AdminLayout() {
   };
 
   const getUserInitial = () => {
-    if (!user?.user_metadata?.full_name) return '?';
-    return user.user_metadata.full_name.charAt(0).toUpperCase();
+    if (!user) return '?';
+    const name = user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email || user.username || '?';
+    return name.charAt(0).toUpperCase();
   };
 
   const sidebarContent = (
     <div className="flex h-full flex-col" style={{ backgroundColor: '#0d0d0d' }}>
       <div className="flex items-center justify-between p-6">
-        <h1 className="text-2xl font-serif text-yakoyo-accent">Craving Station Admin</h1>
+        <h1 className="text-2xl font-serif text-yakoyo-accent">Johjay Foods Admin</h1>
         <button
           onClick={() => setSidebarOpen(false)}
           className="lg:hidden text-white hover:text-yakoyo-accent"

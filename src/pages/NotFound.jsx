@@ -7,7 +7,7 @@ export default function NotFound() {
     <>
       <SEO
         title="Page Not Found"
-        description="The page you're looking for doesn't exist. Return to Craving Station Bakery's homepage."
+        description="The page you're looking for doesn't exist. Return to Johjay Foods homepage."
       />
       <div className="min-h-screen bg-yakoyo-bg flex items-center justify-center p-4">
         <div className="glass-card max-w-lg w-full p-8 text-center">

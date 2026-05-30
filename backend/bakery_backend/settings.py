@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'notifications',
     'site_settings',
     'payments',
+    'newsletter',
 ]
 
 MIDDLEWARE = [

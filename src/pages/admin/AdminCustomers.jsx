@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabaseClient';
+import authApi from '../../lib/authApi';
 
 export default function AdminCustomers() {
   const [customers, setCustomers] = useState([]);
@@ -8,30 +8,36 @@ export default function AdminCustomers() {
   useEffect(() => {
     const fetchCustomers = async () => {
       setLoading(true);
-      // First get customers
-      const { data: customersData, error: customersError } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Fetch customers from Django API
+      try {
+        const headers = await authApi.getAuthHeader();
+        const API_HOST = import.meta.env.VITE_DJANGO_API_BASE_URL || 'http://127.0.0.1:8000';
+        const API_BASE_URL = `${API_HOST.replace(/\/$/, '')}/api`;
+        const res = await fetch(`${API_BASE_URL}/admin/users/`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...(headers || {}) },
+        });
 
-      if (customersError) {
-        console.error(customersError);
-        setLoading(false);
-        return;
+        if (!res.ok) {
+          console.error('Failed to fetch customers', res.status);
+          setLoading(false);
+          return;
+        }
+
+        const customersData = await res.json();
+        const customersError = null;
+
+        // Map API response to existing expected shape
+        const customersWithCounts = (customersData || []).map((customer) => ({
+          ...customer,
+          orders: [{ count: customer.order_count || 0 }],
+        }));
+
+        setCustomers(customersWithCounts);
+      } catch (err) {
+        console.error(err);
       }
 
-      // Then get order counts for each customer
-      const customersWithCounts = await Promise.all(
-        (customersData || []).map(async (customer) => {
-          const { count } = await supabase
-            .from('orders')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', customer.id);
-          return { ...customer, orders: [{ count: count || 0 }] };
-        })
-      );
-
-      setCustomers(customersWithCounts);
       setLoading(false);
     };
 

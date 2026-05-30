@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabaseClient';
+import authApi from '../../lib/authApi';
 import StatsCard from '../../components/admin/StatsCard';
 import { formatNaira } from '../../utils/formatNaira';
 import { useDeliveryFee } from '../../hooks/useDeliveryFee';
@@ -14,64 +14,30 @@ export default function AdminOverview() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const today = new Date().toISOString().split('T')[0];
+        const headers = await authApi.getAuthHeader();
+        const API_HOST = import.meta.env.VITE_DJANGO_API_BASE_URL || 'http://127.0.0.1:8000';
+        const API_BASE_URL = `${API_HOST.replace(/\/$/, '')}/api`;
+        const res = await fetch(`${API_BASE_URL}/admin/stats/`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...(headers || {}) },
+        });
 
-        // Today's orders
-        const { data: ordersToday, error: ordersError } = await supabase
-          .from('orders')
-          .select('total')
-          .gte('created_at', `${today}T00:00:00`);
+        if (!res.ok) {
+          throw new Error(`Failed to fetch admin stats: ${res.status}`);
+        }
 
-        if (ordersError) throw ordersError;
-
-        // Today's revenue
-        const revenueToday = ordersToday?.reduce((sum, order) => sum + Number(order.total), 0) || 0;
-
-        // Pending reservations
-        const { count: pendingReservations, error: resError } = await supabase
-          .from('reservations')
-          .select('*', { count: 'exact', head: true })
-          .eq('status', 'pending');
-
-        if (resError) throw resError;
-
-        // Total customers
-        const { count: totalCustomers, error: custError } = await supabase
-          .from('profiles')
-          .select('*', { count: 'exact', head: true });
-
-        if (custError) throw custError;
-
-
-        // Recent orders
-        const { data: orders, error: recentOrdersError } = await supabase
-          .from('orders')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(10);
-
-        if (recentOrdersError) throw recentOrdersError;
-
-        // Recent reservations
-        const { data: reservations, error: recentResError } = await supabase
-          .from('reservations')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(5);
-
-        if (recentResError) throw recentResError;
+        const data = await res.json();
 
         setStats({
-          ordersToday: ordersToday?.length || 0,
-          revenueToday,
-          pendingReservations: pendingReservations || 0,
-          totalCustomers: totalCustomers || 0,
+          ordersToday: data.ordersToday || 0,
+          revenueToday: data.revenueToday || 0,
+          pendingReservations: data.pendingReservations || 0,
+          totalCustomers: data.totalCustomers || 0,
         });
-        setRecentOrders(orders || []);
-        setRecentReservations(reservations || []);
+        setRecentOrders(data.recentOrders || []);
+        setRecentReservations(data.recentReservations || []);
       } catch (error) {
         console.error('Failed to fetch stats:', error);
-        // Set default values
         setStats({
           ordersToday: 0,
           revenueToday: 0,
@@ -109,7 +75,7 @@ export default function AdminOverview() {
             {recentOrders.slice(0, 5).map((order) => (
               <div key={order.id} className="flex justify-between items-center py-2 border-b border-white/10">
                 <div>
-                  <p className="font-semibold">#{order.id.slice(-8)}</p>
+                  <p className="font-semibold">#{String(order.id).slice(-8)}</p>
                   <p className="text-sm text-yakoyo-muted">{order.customer_name}</p>
                 </div>
                 <div className="text-right">

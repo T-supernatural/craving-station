@@ -35,7 +35,7 @@ export default function AdminReservations() {
 
     if (newStatus === 'confirmed') {
       title = 'Booking Confirmed ✅';
-      message = `Your booking for ${new Date(reservation.date).toLocaleDateString()} at ${reservation.time} for ${reservation.guests} guest(s) has been confirmed. We look forward to supporting your event at Craving Station.`;
+      message = `Your booking for ${new Date(reservation.date).toLocaleDateString()} at ${reservation.time} for ${reservation.guests} guest(s) has been confirmed. We look forward to supporting your event with Johjay Foods.`;
     } else if (newStatus === 'cancelled') {
       title = 'Reservation Update ❌';
       message = `Your reservation for ${new Date(reservation.date).toLocaleDateString()} at ${reservation.time} has been cancelled.`;

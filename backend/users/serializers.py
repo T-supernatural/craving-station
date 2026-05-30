@@ -8,6 +8,8 @@ User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
+    created_at = serializers.DateTimeField(source='date_joined', read_only=True)
+    order_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = User
@@ -26,6 +28,8 @@ class UserSerializer(serializers.ModelSerializer):
             'delivery_address',
             'city',
             'landmark',
+            'created_at',
+            'order_count',
         )
         read_only_fields = ('id', 'username', 'role', 'is_staff', 'is_superuser')
 

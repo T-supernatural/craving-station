@@ -36,8 +36,8 @@ export default function Menu() {
   return (
     <section className="mx-auto max-w-6xl p-4 md:p-8">
       <div className="mb-6">
-        <h1 className="text-4xl font-serif">Bakery Collection</h1>
-        <p className="mt-2 text-yakoyo-muted">Browse our premium selection of cakes, pastries, breads, and curated treats for every occasion.</p>
+        <h1 className="text-4xl font-serif">Menu</h1>
+        <p className="mt-2 text-yakoyo-muted">Browse our curated menu — rice dishes, local meals, soups, pasta, small chops, cocktails, cakes, and packages for events.</p>
       </div>
 
       <div className="mb-6 flex flex-wrap gap-3">

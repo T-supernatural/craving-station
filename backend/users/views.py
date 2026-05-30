@@ -32,6 +32,21 @@ class EmailTokenObtainPairView(TokenObtainPairView):
     serializer_class = EmailTokenObtainPairSerializer
 
 
+from rest_framework.generics import ListAPIView
+from rest_framework.permissions import IsAdminUser
+from django.db.models import Count
+
+
+class AdminUserListAPIView(ListAPIView):
+    permission_classes = [IsAdminUser]
+    serializer_class = UserSerializer
+
+    def get_queryset(self):
+        # Annotate users with order counts
+        qs = User.objects.all().annotate(order_count=Count('orders'))
+        return qs
+
+
 class ProfileAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 

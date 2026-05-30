@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../lib/supabaseClient';
+import authApi from '../lib/authApi';
 import ProfileTab from '../components/dashboard/ProfileTab';
 import OrderHistoryTab from '../components/dashboard/OrderHistoryTab';
 import ReservationsTab from '../components/dashboard/ReservationsTab';
@@ -15,71 +15,49 @@ const tabs = [
 export default function Dashboard() {
   const { user, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
-  const [profile, setProfile] = useState(null);
   const [orderCount, setOrderCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (!user) return;
+    const fetchOrderCount = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      if (user?.role === 'admin' || user?.is_staff || user?.is_superuser) {
+        setLoading(false);
+        return;
+      }
 
       try {
-        // Fetch profile
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
+        const headers = await authApi.getAuthHeader();
+        const API_HOST = import.meta.env.VITE_DJANGO_API_BASE_URL || 'http://127.0.0.1:8000';
+        const API_BASE_URL = `${API_HOST.replace(/\/$/, '')}/api`;
+        const res = await fetch(`${API_BASE_URL}/orders/`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...(headers || {}) },
+        });
 
-        if (profileError) {
-          // If profile doesn't exist, create one
-          if (profileError.code === 'PGRST116') {
-            const { data: newProfile, error: createError } = await supabase
-              .from('profiles')
-              .insert({
-                id: user.id,
-                full_name: user.user_metadata?.full_name || null,
-                phone: user.user_metadata?.phone || null,
-              })
-              .select()
-              .single();
-
-            if (createError) throw createError;
-            setProfile(newProfile);
-          } else {
-            throw profileError;
-          }
-        } else {
-          setProfile(profileData);
-
-          // Check if user is admin and redirect to admin dashboard
-          if (profileData?.role === 'admin') {
-            return <Navigate to="/admin" replace />;
-          }
+        if (!res.ok) {
+          throw new Error(`Failed to fetch orders: ${res.status}`);
         }
 
-        // Fetch order count
-        const { count, error: countError } = await supabase
-          .from('orders')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id);
-
-        if (countError) throw countError;
-        setOrderCount(count || 0);
+        const orders = await res.json();
+        setOrderCount(Array.isArray(orders) ? orders.length : 0);
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error('Error fetching order count:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUserData();
+    fetchOrderCount();
   }, [user]);
 
   const getGreeting = () => {
-    if (!profile?.full_name) return 'Welcome back 👋';
-
-    const firstName = profile.full_name.split(' ')[0];
+    const fullName = user?.full_name || `${user?.first_name || ''} ${user?.last_name || ''}`.trim() || user?.email || 'friend';
+    const firstName = fullName.split(' ')[0];
     const now = new Date();
     // Nigerian time (WAT UTC+1)
     const nigeriaTime = new Date(now.getTime() + (1 * 60 * 60 * 1000));
@@ -98,7 +76,7 @@ export default function Dashboard() {
 
   const getSubtitle = () => {
     if (orderCount > 0) {
-      return `You have placed ${orderCount} order${orderCount === 1 ? '' : 's'} with us. Thank you for choosing Craving Station.`;
+      return `You have placed ${orderCount} order${orderCount === 1 ? '' : 's'} with us. Thank you for choosing Johjay Foods.`;
     } else {
       return "You haven't placed an order yet. Explore our menu and treat yourself 🍽️";
     }
@@ -107,7 +85,7 @@ export default function Dashboard() {
   const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component;
 
   // Redirect admin users to admin dashboard
-  if (profile?.role === 'admin') {
+  if (user?.role === 'admin' || user?.is_staff || user?.is_superuser) {
     return <Navigate to="/admin" replace />;
   }
 

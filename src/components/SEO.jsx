@@ -1,16 +1,16 @@
 import { Helmet } from 'react-helmet-async';
 
 export default function SEO({ title, description, image, url }) {
-  const siteName = 'Craving Station Bakery';
-  const defaultDescription = 'Discover Craving Station Bakery — premium cakes, pastries, breads, and catering for modern celebrations and everyday indulgence.';
+  const siteName = 'Johjay Foods';
+  const defaultDescription = 'Johjay Foods — professional catering, event bookings, cakes, small chops, cocktails, and curated menus for memorable occasions.';
   const defaultImage = '/og-image.jpg'; // Add this image to public folder
-  const siteUrl = 'https://cravingstationbakery.com'; // Update with actual domain
+  const siteUrl = 'https://johjayfoods.com'; // Update with actual domain
 
   return (
     <Helmet>
       <title>{title ? `${title} | ${siteName}` : siteName}</title>
       <meta name="description" content={description || defaultDescription} />
-      <meta name="keywords" content="bakery, cakes, pastries, catering, desserts, artisan bread, premium bakery" />
+      <meta name="keywords" content="catering, event catering, cakes, small chops, cocktails, corporate catering, catering packages" />
 
       {/* Open Graph / Facebook */}
       <meta property="og:type" content="website" />

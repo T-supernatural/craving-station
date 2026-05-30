@@ -178,7 +178,7 @@ export default function Order() {
         return;
       }
 
-      const paymentRef = 'cravingstation_' + new Date().getTime();
+      const paymentRef = 'johjayfoods_' + new Date().getTime();
 
       // STEP 1: Save order BEFORE opening Paystack with status 'pending_payment'
       const savedOrder = await createOrder({

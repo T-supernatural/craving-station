@@ -1,10 +1,15 @@
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from django.contrib.auth import get_user_model
+from django.db.models import Sum
 from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework import permissions, status
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework.views import APIView
 from .models import Order
 from .serializers import OrderSerializer, OrderCreateSerializer, OrderUpdateSerializer
+from bookings.models import Booking
 
 
 class OrderListAPIView(ListAPIView):
@@ -92,3 +97,40 @@ class OrderDestroyAPIView(DestroyAPIView):
             return Response({'detail': 'Order deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
 
         return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
+
+
+class AdminDashboardStatsAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+
+    def get(self, request):
+        today = timezone.now().date()
+        orders_today = Order.objects.filter(created_at__date=today)
+        revenue_today = orders_today.aggregate(total=Sum('total'))['total'] or 0
+        pending_reservations = Booking.objects.filter(status='pending').count()
+        total_customers = get_user_model().objects.count()
+
+        recent_orders = list(
+            orders_today.order_by('-created_at')[:10].values('id', 'customer_name', 'total', 'status', 'created_at')
+        )
+        recent_reservations_raw = list(
+            Booking.objects.order_by('-created_at')[:5].values('id', 'client_name', 'event_date', 'event_time', 'status')
+        )
+        recent_reservations = [
+            {
+                'id': res['id'],
+                'name': res['client_name'],
+                'date': res['event_date'],
+                'time': res['event_time'],
+                'status': res['status'],
+            }
+            for res in recent_reservations_raw
+        ]
+
+        return Response({
+            'ordersToday': orders_today.count(),
+            'revenueToday': revenue_today,
+            'pendingReservations': pending_reservations,
+            'totalCustomers': total_customers,
+            'recentOrders': recent_orders,
+            'recentReservations': recent_reservations,
+        })

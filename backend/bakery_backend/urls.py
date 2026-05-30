@@ -11,4 +11,5 @@ urlpatterns = [
     path('api/', include('notifications.urls')),
     path('api/', include('site_settings.urls')),
     path('api/', include('payments.urls')),
+    path('api/', include('newsletter.urls')),
 ]
